@@ -38,7 +38,7 @@ It seems like there are plenty of approaches to this and the library was really 
 In future there are simpler ways to write this including with range views (currently available in [range-v3](https://github.com/ericniebler/range-v3)):
 
 ```cpp
-for (const auto& [iter, index] : v | zip(iota(0))) {
+for (const auto& [iter, index] : zip(v, iota(0))) {
 
 }
 ```
