@@ -3,41 +3,67 @@
 
 namespace detail {
 
-    template <typename Container>
-class iter_and_index_wrapper {
-public:
+	template <typename>
+	class iterator;
 
+	//---------------------------------------------------------
+	// Container wrapper
+	//---------------------------------------------------------
+    template <typename Container>
+	class iter_and_index_wrapper {
+	private:
+		const Container * base;
+
+	public:
+
+		using iterator_t = iterator<decltype(base->begin())>;
+
+		iter_and_index_wrapper(Container& base) :
+			base{ &base }
+		{}
+
+		iterator_t begin() const {
+			return { base->begin(), 0 };
+		}
+
+		iterator_t end() const {
+			return { base->end(), static_cast<int>(base->size()) };
+		}
+	};
+
+	//---------------------------------------------------------
+	// Iterator definition
+	//---------------------------------------------------------
 	template <typename iterator_base>
 	class iterator {
 	public:
 
 		using value = std::pair<typename iterator_base::value_type, int>;
-		using reference = value&;
-		using pointer = value*;
-		using const_ref = const value&;
+		using reference = std::pair<typename iterator_base::reference, int>;
+		using pointer = std::pair<typename iterator_base::pointer, int>;
+		using const_ref = std::pair<const typename iterator_base::reference, int>;
 
 		iterator(iterator_base base, int index) :
-			member{ *base, index },
-			iter{ base }
+			iter{ base },
+			index{ index }
 		{}
 
 		const_ref operator*() const {
-			return member;
+			return { *iter, index };
 		}
 
 		reference operator*() {
-			return member;
+			return { *iter, index };
 		}
 
 		iterator& operator++() {
 			++iter;
-			member.first = *iter;
-			++member.second;
+			++index;
 			return *this;
 		}
 
 		bool operator==(const iterator& rhs) const {
-			return member == rhs.member && iter == rhs.iter;
+			return iter == rhs.iter && index == rhs.index;
 		}
 
 		bool operator!=(const iterator& rhs) const {
@@ -45,28 +71,9 @@ public:
 		}
 
 	private:
-		value member;
 		iterator_base iter;
+		int index;
 	};
-
-	using container_t = typename std::decay<Container>::type;
-	using iterator_t = iterator<typename container_t::iterator>;
-
-	iter_and_index_wrapper(Container& base) :
-		base{ &base }
-	{}
-
-	iterator_t begin() const {
-		return { base->begin(), 0 };
-	}
-
-	iterator_t end() const {
-		return { base->end(), static_cast<int>(base->size()) };
-	}
-
-private:
-	container_t* base;
-};
 
 }
 
